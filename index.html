@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Розклад екзаменів — ННІІФТКН ЧНУ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a1a;
+    --surface: #150f28;
+    --surface2: #1e1535;
+    --border: #2a1f47;
+    --accent: #a855f7;
+    --accent2: #c084fc;
+    --accent-glow: rgba(168,85,247,0.18);
+    --text: #ede9f8;
+    --text-muted: #9b8dbb;
+    --text-dim: #5a4a7a;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --orange: #fb923c;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Geologica', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .header-glow {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 200px;
+    background: radial-gradient(ellipse, rgba(168,85,247,0.14) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .uni-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .uni-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(22px, 4vw, 42px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ede9f8 0%, #c084fc 60%, #fb923c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+
+  /* exam type badge */
+  .exam-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 6px;
+    color: var(--accent2);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .exam-type-badge.vkr {
+    background: rgba(251,146,60,0.12);
+    border-color: rgba(251,146,60,0.3);
+    color: var(--orange);
+  }
+
+  /* Controls */
+  .controls {
+    padding: 28px 0;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+
+  input[type="search"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px 10px 40px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type="search"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  input[type="search"]::placeholder { color: var(--text-dim); }
+
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-muted);
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .chip:hover { border-color: var(--accent2); color: var(--accent2); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent); }
+
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 20px 0 0;
+    overflow-x: auto;
+  }
+
+  .tab {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border-bottom: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 18px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.active { background: var(--surface); color: var(--accent2); border-color: var(--accent); }
+
+  .main { padding: 0 0 60px; }
+
+  .section-panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-top: none;
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    padding: 24px;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .section-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .group-block { margin-bottom: 32px; }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .group-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+
+  .group-code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent2);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Unbounded', sans-serif;
+    padding: 3px 10px;
+  }
+
+  .group-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 10px;
+  }
+
+  .event-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .event-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  .event-card.hidden { display: none; }
+  .event-card.past-card { opacity: 0.4; }
+
+  .event-card.type-vkr {
+    border-left: 3px solid var(--orange);
+  }
+
+  .event-card.type-exam {
+    border-left: 3px solid var(--accent);
+  }
+
+  .event-date {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-width: 52px;
+    text-align: center;
+    padding: 8px 6px;
+    flex-shrink: 0;
+  }
+
+  .event-date .day {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent2);
+    line-height: 1;
+  }
+
+  .event-date .month {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  .event-date .time {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .event-info { flex: 1; min-width: 0; }
+
+  .event-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .event-teacher {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+
+  .event-teacher::before {
+    content: '';
+    display: inline-block;
+    width: 14px; height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b8dbb' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") center/contain no-repeat;
+    flex-shrink: 0;
+  }
+
+  .event-room {
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .event-room::before {
+    content: '';
+    display: inline-block;
+    width: 14px; height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a7a' stroke-width='2'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9,22 9,12 15,12 15,22'/%3E%3C/svg%3E") center/contain no-repeat;
+    flex-shrink: 0;
+  }
+
+  .today-badge {
+    background: var(--green);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+
+  .soon-badge {
+    background: var(--yellow);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-size: 13px;
+    display: none;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  @media (max-width: 600px) {
+    .schedule-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 20px; }
+    .tab { font-size: 11px; padding: 8px 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-glow"></div>
+    <div class="uni-badge">ЧНУ ім. Ю. Федьковича · ННІІФТКН · 2025–2026</div>
+    <h1>Розклад екзаменів</h1>
+    <p class="subtitle">Навчально-науковий інститут фізико-технічних та комп'ютерних наук&nbsp;·&nbsp;Денна форма навчання</p>
+  </header>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="search" placeholder="Пошук предмету, викладача, аудиторії, групи…">
+    </div>
+    <div class="filter-group" id="monthFilter">
+      <button class="chip active" data-month="all">Всі дати</button>
+      <button class="chip" data-month="4">Квітень</button>
+      <button class="chip" data-month="5">Травень</button>
+      <button class="chip" data-month="6">Червень</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Усього екзаменів</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statGroups">0</div>
+      <div class="stat-label">Груп/потоків</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statToday">0</div>
+      <div class="stat-label">Сьогодні</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statSoon">0</div>
+      <div class="stat-label">Найближчі 3 дні</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+    <div id="panels"></div>
+    <div class="no-results" id="noResults">Нічого не знайдено за вашим запитом</div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="container">
+    ННІІФТКН ЧНУ ім. Ю. Федьковича &nbsp;·&nbsp; 2025–2026 н.р. &nbsp;·&nbsp;
+    Директор інституту Петро Шпатар
+  </div>
+</footer>
+
+<script>
+const SECTIONS = [
+  {
+    id: 'bachelor1',
+    label: '1 курс Бакалавр',
+    sublabel: '2 сем.',
+    groups: [
+      {
+        name: 'Видавництво та поліграфія',
+        code: '126',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гуцуляк І.Г.', date: '12.06', time: '09:00', room: 'корп.9, а.209', type: 'exam' },
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '16.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Фесів І.В. Горбулик В.І.', date: '08.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+          { subject: 'Хімія', teacher: 'Копач О.В.', date: '04.06', time: '09:00', room: 'корп.3, а.102', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Метрологія та інформаційно-вимірювальна техніка',
+        code: '122',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гуцуляк І.Г.', date: '04.06', time: '09:00', room: 'корп.9, а.209', type: 'exam' },
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '15.06', time: '09:00', room: 'корп.9, а.8', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Фесів І.В. Горбулик В.І.', date: '12.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Основи метрології та інформаційно- вимірювальної техніки', teacher: 'Солтис І.В.', date: '08.06', time: '09:00', room: 'корп.9, а.408', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '125а',
+        events: [
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '08.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Вибрані розділи фізики', teacher: 'Горбулик В.І.', date: '15.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Основи інформаційних технологій', teacher: 'Рождественська М.Г.', date: '04.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '125б',
+        events: [
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '09.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Вибрані розділи фізики', teacher: 'Горбулик В.І.', date: '16.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Основи інформаційних технологій', teacher: 'Рождественська М.Г.', date: '05.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інженерія інформаційних і комунікаційних систем та Інтернету речей',
+        code: '121',
+        events: [
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '08.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Фесів І.В. Горбулик В.І.', date: '15.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Інформатика', teacher: 'Рябий П.А.', date: '05.06', time: '09:00', room: 'корп.9, а.410', type: 'exam' },
+          { subject: 'Матеріалознавство та компонентна база інформаційної техніки', teacher: 'Ластівка Г.І.', date: '02.06', time: '09:00', room: 'корп.9, а.А102', type: 'exam' },
+          { subject: 'Теорія електричних кіл', teacher: 'Рождественська М.Г.', date: '11.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Телекомунікації',
+        code: '124',
+        events: [
+          { subject: 'Вища математика', teacher: 'Літовченко В.А. Мельничук Л.М.', date: '12.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Фесів І.В. Горбулик В.І.', date: '04.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Інформатика', teacher: 'Рябий П.А.', date: '16.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Теорія електричних кіл', teacher: 'Рождественська М.Г.', date: '08.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмування мобільних і вбудованих комп\'ютерних систем та засобів інтернету речей',
+        code: '142а',
+        events: [
+          { subject: 'Вища математика', teacher: 'Філіпчук О.І. Малик І.В.', date: '15.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Струк Я.М.', date: '08.06', time: '09:00', room: '9к 118ауд', type: 'exam' },
+          { subject: 'Комп\'ютерна дискретна математика', teacher: 'Дейбук В.Г. Стецько Ю.П.', date: '01.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Програмування.. Ч2..Програмування мовою С++++', teacher: 'Танасюк Ю.В.', date: '04.06', time: '09:00', room: '120', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмування мобільних і вбудованих комп\'ютерних систем та засобів інтернету речей',
+        code: '142б',
+        events: [
+          { subject: 'Вища математика', teacher: 'Філіпчук О.І. Малик І.В.', date: '16.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Струк Я.М.', date: '09.06', time: '09:00', room: '9к 118ауд', type: 'exam' },
+          { subject: 'Комп\'ютерна дискретна математика', teacher: 'Дейбук В.Г. Стецько Ю.П.', date: '02.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Програмування.. Ч2..Програмування мовою С++++', teacher: 'Танасюк Ю.В.', date: '05.06', time: '09:00', room: '120', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '144а',
+        events: [
+          { subject: 'Вища математика', teacher: 'Філіпчук О.І. Малик І.В.', date: '11.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Філіпчук М.В.', date: '01.06', time: '09:00', room: '111', type: 'exam' },
+          { subject: 'Алгоритмізація та програмування', teacher: 'Довгунь А.Я.', date: '08.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Структури даних та алгоритми', teacher: 'Довгунь А.Я.', date: '04.06', time: '09:00', room: '114', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '144б',
+        events: [
+          { subject: 'Вища математика', teacher: 'Філіпчук О.І. Малик І.В.', date: '12.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Філіпчук М.В.', date: '01.06', time: '09:00', room: '111', type: 'exam' },
+          { subject: 'Алгоритмізація та програмування', teacher: 'Довгунь А.Я.', date: '09.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Структури даних та алгоритми', teacher: 'Довгунь А.Я.', date: '05.06', time: '09:00', room: '114', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '141а',
+        events: [
+          { subject: 'Комп\'ютерна дискретна математика', teacher: 'Дейбук В.Г. Стецько Ю.П.', date: '04.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Теоретичні основи кібернетики', teacher: 'Філіпчук О.І.', date: '11.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Об\'єктно-орієнтоване програмування', teacher: 'Лазорик В.В.', date: '08.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Філософія', teacher: 'Мартиненко О.П.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '141б',
+        events: [
+          { subject: 'Комп\'ютерна дискретна математика', teacher: 'Дейбук В.Г. Стецько Ю.П.', date: '05.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Теоретичні основи кібернетики', teacher: 'Філіпчук О.І.', date: '12.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Об\'єктно-орієнтоване програмування', teacher: 'Лазорик В.В.', date: '09.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Філософія', teacher: 'Мартиненко О.П.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '143а',
+        events: [
+          { subject: 'Практичний курс англійської мови', teacher: 'Мудра О.В. Тоненчук Т.В. Цинтар Н.В.', date: '08.06', time: '09:00', room: '101,103,106', type: 'exam' },
+          { subject: 'Українська мова за професійним спрямуванням', teacher: 'Гажук-Котик Л.Г. Філіпчук М.В.', date: '04.06', time: '09:00', room: '101,103', type: 'exam' },
+          { subject: 'Структури даних, алгоритми та об\'єктно-орієнтована парадигма', teacher: 'Валь О.О.', date: '01.06', time: '09:00', room: '209', type: 'exam' },
+          { subject: 'Математичний аналіз: диференціальне та інтегральне числення', teacher: 'Тимофієва Є.М.', date: '15.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Комп\'ютерна дискретна математика, Ч2', teacher: 'Валь О.Д.', date: '11.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '143б',
+        events: [
+          { subject: 'Практичний курс англійської мови', teacher: 'Мудра О.В. Тоненчук Т.В. Цинтар Н.В.', date: '09.06', time: '09:00', room: '101,103,106', type: 'exam' },
+          { subject: 'Українська мова за професійним спрямуванням', teacher: 'Гажук-Котик Л.Г. Філіпчук М.В.', date: '05.06', time: '09:00', room: '101,103', type: 'exam' },
+          { subject: 'Структури даних, алгоритми та об\'єктно-орієнтована парадигма', teacher: 'Валь О.О.', date: '02.06', time: '09:00', room: '209', type: 'exam' },
+          { subject: 'Математичний аналіз: диференціальне та інтегральне числення', teacher: 'Тимофієва Є.М.', date: '16.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Комп\'ютерна дискретна математика, Ч2', teacher: 'Валь О.Д.', date: '12.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Фізика та астрономія',
+        code: '111',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л. Філіпчук М.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Математичний аналіз', teacher: 'Перун Г.М.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Програмування та комп\'ютерне моделювання', teacher: 'Гуцуляк І.І.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 212Б', type: 'exam' },
+          { subject: 'Молекулярна фізика', teacher: 'Струк Я.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Середня освіта (Технології та інформатика)',
+        code: '115',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л. Філіпчук М.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Психологія (загальна, вікова, педагогічна)', teacher: 'Гайсонюк Н.А.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+          { subject: 'Нарисна геометрія та креслення', teacher: 'Деревянчук О.В.', date: '09.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+          { subject: 'Технічна механіка', teacher: 'Крамар В.М.', date: '12.06', time: '10:00', room: 'корпус 2, ауд. 208', type: 'exam' },
+          { subject: 'Програмування та алгоритмічні мови', teacher: 'Фратавчан В.Г.', date: '16.06', time: '14:00', room: 'корпус 8, ауд. 101Ц', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Професійна освіта (Машинобудування)',
+        code: '116',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л. Філіпчук М.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Машинобудівне креслення', teacher: 'Деревянчук О.В.', date: '09.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+          { subject: 'Теоретична механіка', teacher: 'Крамар В.М.', date: '12.06', time: '10:00', room: 'корпус 2, ауд. 208', type: 'exam' },
+          { subject: 'Психологія', teacher: 'Гайсонюк Н.А.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '113',
+        events: [
+          { subject: 'Математичний аналіз', teacher: 'Перун Г.М.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Молекулярна фізика', teacher: 'Струк Я.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Програмування', teacher: 'Головацький В.А.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 403А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інформаційні системи та технології',
+        code: '117',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л. Філіпчук М.В.', date: '01.06', time: '10:00', room: 'корпус 8, ауд. 111', type: 'exam' },
+          { subject: 'Вища математика', teacher: 'Малик І.В.', date: '11.06', time: '10:00', room: 'корпус 8, ауд. 211', type: 'exam' },
+          { subject: 'Фізика', teacher: 'Гуцуляк І.І.', date: '16.06', time: '10:00', room: 'корпус 9, ауд. 215Б', type: 'exam' },
+          { subject: 'Алгоритмізація та програмування', teacher: 'Довгунь А.Я.', date: '04.06', time: '10:00', room: 'корпус 8, ауд. 114', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Автоматизація та комп\'ютерно-інтегровані технології',
+        code: '131',
+        events: [
+          { subject: 'Вища математика.. Диференціальні рівняння.. Комплексне числення.. Задачі математичної фізики', teacher: 'Лучко В.М.', date: '03.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Фізика.. Електрика і магнетизм', teacher: 'Константинович І.А.', date: '08.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Програмування та інформаційні технології.. Об\'єктно-орієнтоване програмування та бази даних', teacher: 'Чупира С.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Електроенергетика, електротехніка та електромеханіка',
+        code: '133',
+        events: [
+          { subject: 'Вища математика.. Диференціальні рівняння.. Комплексне числення.. Задачі математичної фізики', teacher: 'Лучко В.М.', date: '03.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Фізика.. Електрика і магнетизм', teacher: 'Константинович І.А.', date: '08.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Програмування та інформаційні технології.. Об\'єктно-орієнтоване програмування та бази даних', teacher: 'Чупира С.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '15.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Мікро-та наносистемна техніка',
+        code: '132',
+        events: [
+          { subject: 'Фізика.. Електрика і магнетизм', teacher: 'Константинович І.А.', date: '08.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Програмування та інформаційні технології.. Об\'єктно-орієнтоване програмування та бази даних', teacher: 'Чупира С.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+          { subject: 'Вища математика.. Диференціальні рівняння, комплексне числення, задачі математичної фізики', teacher: 'Лучко В.М.', date: '03.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'bachelor2',
+    label: '2 курс Бакалавр',
+    sublabel: '4 сем.',
+    groups: [
+      {
+        name: 'Метрологія та інформаційно-вимірювальна техніка',
+        code: '222',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '12.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Хвильова оптика', teacher: 'Ангельський О.В.', date: '05.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Метрологія та інформаційно-вимірювальна техніка',
+        code: '222ск',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '12.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Хвильова оптика', teacher: 'Ангельський О.В.', date: '05.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Телекомунікації',
+        code: '224',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '03.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Схемотехніка', teacher: 'Браїловський В.В.', date: '12.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Теорія електрозв\'язку', teacher: 'Склярчук В.М.', date: '08.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Фізичні основи оптичного зв\'язку', teacher: 'Фельде Х.В.', date: '16.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Телекомунікації',
+        code: '224ск',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '03.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Схемотехніка', teacher: 'Браїловський В.В.', date: '12.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Теорія електрозв\'язку', teacher: 'Склярчук В.М.', date: '08.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Фізичні основи оптичного зв\'язку', teacher: 'Фельде Х.В.', date: '16.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Видавництво та поліграфія',
+        code: '226',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '05.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Інформатика і програмування', teacher: 'Олар О.В.', date: '10.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Опрацювання графічної інформації', teacher: 'Дуболазов О.В.', date: '15.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Курсова робота з технологій опрацювання інформації', teacher: 'Дуболазов О.В.', date: '21.05', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Видавництво та поліграфія',
+        code: '226ск',
+        events: [
+          { subject: 'Філософія', teacher: 'Бродецький О.Є.', date: '05.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Інформатика і програмування', teacher: 'Олар О.В.', date: '10.06', time: '09:00', room: 'корп.9, а.310', type: 'exam' },
+          { subject: 'Опрацювання графічної інформації', teacher: 'Дуболазов О.В.', date: '15.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Курсова робота з технологій опрацювання інформації', teacher: 'Дуболазов О.В.', date: '21.05', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Безпека інформаційних і комунікаційних систем та Інтернету речей',
+        code: '221',
+        events: [
+          { subject: 'Схемотехніка', teacher: 'Браїловський В.В.', date: '15.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Сигнали і процеси в радіотехніці', teacher: 'Галюк С.Д.', date: '05.06', time: '09:00', room: 'корп.9, а.А109', type: 'exam' },
+          { subject: 'Основи функціонування і взаємодії об\'єктів кіберпростору', teacher: 'Гресь О.В.', date: '10.06', time: '09:00', room: 'корп.9, а.209', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інженерія інформаційних і комунікаційних систем та Інтернету речей',
+        code: '221ск',
+        events: [
+          { subject: 'Схемотехніка', teacher: 'Браїловський В.В.', date: '15.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Сигнали і процеси в радіотехніці', teacher: 'Галюк С.Д.', date: '05.06', time: '09:00', room: 'корп.9, а.А109', type: 'exam' },
+          { subject: 'Основи функціонування і взаємодії об\'єктів кіберпростору', teacher: 'Гресь О.В.', date: '10.06', time: '09:00', room: 'корп.9, а.209', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '225',
+        events: [
+          { subject: 'Англійська мова професійного спілкування', teacher: 'Бортник С.Б. Рубан Д.А.', date: '04.06', time: '09:00', room: 'корп.9, а.8, корп.6,а.40', type: 'exam' },
+          { subject: 'Основи інфокомунікацій', teacher: 'Лесінський В.В.', date: '12.06', time: '09:00', room: 'корп.9, а.В4', type: 'exam' },
+          { subject: 'Програмне забезпечення об\'єктів кіберпростору', teacher: 'Галюк С.Д.', date: '16.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Комп\'ютерна електроніка', teacher: 'Політанський Р.Л.', date: '08.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '225ск',
+        events: [
+          { subject: 'Англійська мова професійного спілкування', teacher: 'Бортник С.Б. Рубан Д.А.', date: '04.06', time: '09:00', room: 'корп.6, а.40', type: 'exam' },
+          { subject: 'Основи інфокомунікацій', teacher: 'Лесінський В.В.', date: '12.06', time: '09:00', room: 'корп.9, а.В4', type: 'exam' },
+          { subject: 'Програмне забезпечення об\'єктів кіберпростору', teacher: 'Галюк С.Д.', date: '16.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Комп\'ютерна електроніка', teacher: 'Політанський Р.Л.', date: '08.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '244а',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+          { subject: 'Дослідження операцій та теорія ігор', teacher: 'Яцько О.М.', date: '04.06', time: '09:00', room: '111', type: 'exam' },
+          { subject: 'Крос-платформне програмування', teacher: 'Ватаманіца Е.В. Лазорик В.В.', date: '10.06', time: '09:00', room: '114', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '244б',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+          { subject: 'Дослідження операцій та теорія ігор', teacher: 'Яцько О.М.', date: '05.06', time: '09:00', room: '111', type: 'exam' },
+          { subject: 'Крос-платформне програмування', teacher: 'Ватаманіца Е.В. Лазорик В.В.', date: '10.06', time: '09:00', room: '114', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмування мобільних і вбудованих комп\'ютерних систем та засобів інтернету речей',
+        code: '242б',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '02.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Комп\'ютерна електроніка мобільних систем', teacher: 'Воробець О.І.', date: '16.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Числові методи комп\'ютерної інженерії', teacher: 'Дейбук В.Г.', date: '05.06', time: '09:00', room: '117', type: 'exam' },
+          { subject: 'Сигнали і спектри детермінованих і випадкових процесів', teacher: 'Мельничук С.В.', date: '12.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Комп\'ютерна логіка..Ч3.. Теорія інформації та кодування', teacher: 'Воробець Г.І.', date: '09.06', time: '09:00', room: '120', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Комп’’ютерна інженерія',
+        code: '242а',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '212', type: 'exam' },
+          { subject: 'Числові методи комп\'ютерної інженерії', teacher: 'Дейбук В.Г.', date: '04.06', time: '09:00', room: '117', type: 'exam' },
+          { subject: 'Комп\'ютерна логіка..Ч3.. Теорія інформації та кодування', teacher: 'Воробець Г.І.', date: '08.06', time: '09:00', room: '120', type: 'exam' },
+          { subject: 'Комп\'ютерна електроніка', teacher: 'Воробець О.І.', date: '15.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Теорія ймовірностей в системах обробки інформації', teacher: 'Антонюк С.В.', date: '11.06', time: '09:00', room: '111', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '241а',
+        events: [
+          { subject: 'Крос-платформне програмування', teacher: 'Ватаманіца Е.В. Лазорик В.В.', date: '10.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Антонюк С.В.', date: '15.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: '', date: '05.06', time: '09:00', room: '112', type: 'exam' },
+          { subject: 'Технології BackEnd- розробки', teacher: 'Кириченко О.О.', date: '01.06', time: '09:00', room: '216', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '241б',
+        events: [
+          { subject: 'Крос-платформне програмування', teacher: 'Ватаманіца Е.В. Лазорик В.В.', date: '11.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Антонюк С.В.', date: '16.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: '', date: '06.06', time: '09:00', room: '112', type: 'exam' },
+          { subject: 'Технології BackEnd- розробки', teacher: 'Кириченко О.О.', date: '02.06', time: '09:00', room: '216', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '241ск',
+        events: [
+          { subject: 'Крос-платформне програмування', teacher: 'Ватаманіца Е.В. Лазорик В.В.', date: '11.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Антонюк С.В.', date: '16.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: '', date: '06.06', time: '09:00', room: '112', type: 'exam' },
+          { subject: 'Технології BackEnd- розробки', teacher: 'Кириченко О.О.', date: '02.06', time: '09:00', room: '216', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '243а',
+        events: [
+          { subject: 'Англійська мова професійного спрямування', teacher: 'Мудра О.В. Тоненчук Т.В. Цинтар Н.В.', date: '01.06', time: '09:00', room: '101,103,117', type: 'exam' },
+          { subject: 'Веб-технології, ч2', teacher: 'Карачевцев А.О.', date: '05.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Бази даних та NoSQL- системи', teacher: 'Янушевський С.В.', date: '11.06', time: '09:00', room: '202', type: 'exam' },
+          { subject: 'Емпіричні методи інженерії програмного забезпечення', teacher: 'Валь О.Д.', date: '15.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Створення та розвиток ІТ-продуктів', teacher: 'Комісарчук В.В.', date: '03.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Технології Java', teacher: 'Валь О.О.', date: '08.06', time: '09:00', room: '209', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '243б',
+        events: [
+          { subject: 'Англійська мова професійного спрямування', teacher: 'Мудра О.В. Тоненчук Т.В. Цинтар Н.В.', date: '01.06', time: '09:00', room: '101,103,117', type: 'exam' },
+          { subject: 'Веб-технології, ч2', teacher: 'Карачевцев А.О.', date: '05.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Бази даних та NoSQL- системи', teacher: 'Янушевський С.В.', date: '11.06', time: '09:00', room: '202', type: 'exam' },
+          { subject: 'Емпіричні методи інженерії програмного забезпечення', teacher: 'Валь О.Д.', date: '16.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Створення та розвиток ІТ-продуктів', teacher: 'Комісарчук В.В.', date: '03.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Технології Java', teacher: 'Валь О.О.', date: '09.06', time: '09:00', room: '209', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '243ск',
+        events: [
+          { subject: 'Веб-технології, ч2', teacher: 'Карачевцев А.О.', date: '05.06', time: '09:00', room: '106', type: 'exam' },
+          { subject: 'Емпіричні методи інженерії програмного забезпечення', teacher: 'Валь О.Д.', date: '16.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Створення та розвиток ІТ-продуктів', teacher: 'Комісарчук В.В.', date: '03.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Технології Java', teacher: 'Валь О.О.', date: '10.06', time: '09:00', room: '209', type: 'exam' },
+          { subject: 'Моделювання та оптимізація систем', teacher: 'Валь О.Д.', date: '13.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Комп\'ютерна дискретна математика, Ч2', teacher: 'Валь О.Д.', date: '12.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Структури даних, алгоритми та об\'єктно-орієнтована парадигма', teacher: 'Валь О.О.', date: '02.06', time: '09:00', room: '209', type: 'exam' },
+          { subject: 'Українська мова за професійним спрямуванням', teacher: 'Філіпчук М.В.', date: '04.06', time: '09:00', room: '101,103', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Машинобудування',
+        code: '216',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Педагогіка з основами педмайстерності', teacher: 'Ковальчук І.В.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+          { subject: 'Електричні машини', teacher: 'Деревянчук О.В.', date: '05.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+          { subject: 'Матеріалознавство та матеріали в машинобудуванні', teacher: 'Кройтор О.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 401А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Професійна освіта (Машинобудування)',
+        code: '216ск',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Вітрук Н.Л.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Педагогіка з основами педмайстерності', teacher: 'Ковальчук І.В.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+          { subject: 'Електричні машини', teacher: 'Деревянчук О.В.', date: '05.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+          { subject: 'Матеріалознавство та матеріали в машинобудуванні', teacher: 'Кройтор О.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 401А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Фізика та астрономія',
+        code: '211',
+        events: [
+          { subject: 'Методи математичної фізики', teacher: 'Гуцул В.І. Іваночко М.М.', date: '09.06', time: '11:00', room: 'корпус 9, ауд. 204Б', type: 'exam' },
+          { subject: 'Оптика', teacher: 'Курек Є.І.', date: '01.06', time: '12:00', room: 'корпус 9, ауд. 303А', type: 'exam' },
+          { subject: 'Основи електроніки', teacher: 'Гуцуляк І.І.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 215Б', type: 'exam' },
+          { subject: 'Основи кристалографії', teacher: 'Ткач О.О.', date: '15.06', time: '10:00', room: 'корпус 9, ауд. 204Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '213',
+        events: [
+          { subject: 'Методи математичної фізики', teacher: 'Гуцул В.І. Іваночко М.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Оптика', teacher: 'Курек Є.І.', date: '01.06', time: '08:20', room: 'корпус 9, ауд. 303А', type: 'exam' },
+          { subject: 'Комп\'ютерне моделювання у прикладній фізиці', teacher: 'Прибила А.В.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 413А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '213ск',
+        events: [
+          { subject: 'Методи математичної фізики', teacher: 'Гуцул В.І. Іваночко М.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Оптика', teacher: 'Курек Є.І.', date: '01.06', time: '08:20', room: 'корпус 9, ауд. 303А', type: 'exam' },
+          { subject: 'Комп\'ютерне моделювання у прикладній фізиці', teacher: 'Прибила А.В.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 413А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інформаційні системи та технології',
+        code: '217',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П.', date: '01.06', time: '11:30', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Математичні методи дослідження операцій', teacher: 'Борча М.Д.', date: '04.06', time: '10:00', room: 'корпус 9, ауд. 212Б', type: 'exam' },
+          { subject: 'Бази даних', teacher: 'Янушевський С.В.', date: '11.06', time: '10:00', room: 'корпус 8, ауд. 202', type: 'exam' },
+          { subject: 'Числові методи', teacher: 'Борча М.Д.', date: '15.06', time: '10:00', room: 'корпус 9, ауд. 212Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Технології та інформатика',
+        code: '215',
+        events: [
+          { subject: 'Матеріалознавство', teacher: 'Кройтор О.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 401А', type: 'exam' },
+          { subject: 'Педагогіка з основами педмайстерності', teacher: 'Ковальчук І.В.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Середня освіта (Технології та інформатика)',
+        code: '215ск',
+        events: [
+          { subject: 'Матеріалознавство', teacher: 'Кройтор О.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 401А', type: 'exam' },
+          { subject: 'Педагогіка з основами педмайстерності', teacher: 'Ковальчук І.В.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 102Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Автоматизація та комп\'ютерно-інтегровані технології',
+        code: '231ск',
+        events: [
+          { subject: 'Вища математика.. Диференціальні рівняння.. Комплексне числення.. Задачі математичної фізики', teacher: 'Лучко В.М.', date: '03.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Фізика.. Електрика і магнетизм', teacher: 'Константинович І.А.', date: '08.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Програмування та інформаційні технології.. Об\'єктно-орієнтоване програмування та бази даних', teacher: 'Чупира С.М.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+          { subject: 'Теорія електричних та електронних кіл.. Трифазні електричні кола, перехідні процеси, несинусоїдальні періодичні сигнали', teacher: 'Андрущак Г.О.', date: '15.06', time: '10:00', room: 'корпус 9, ауд. 400А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Автоматизація та комп\'ютерно-інтегровані технології',
+        code: '231',
+        events: [
+          { subject: 'Теорія автоматичного керування', teacher: 'Шепетюк Б.Д.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Філософія', teacher: 'Рошкулець Р.Г.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 103Б', type: 'exam' },
+          { subject: 'Теорія електричних та електронних кіл.. Трифазні електричні кола, перехідні процеси, несинусоїдальні періодичні сигнали', teacher: 'Андрущак Г.О.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Мікро-та наносистемна техніка',
+        code: '232',
+        events: [
+          { subject: 'Філософія', teacher: 'Рошкулець Р.Г.', date: '04.06', time: '10:00', room: 'корпус 9, ауд. 103Б', type: 'exam' },
+          { subject: 'Теорія електричних та електронних кіл.. Трифазні електричні кола, перехідні процеси, несинусоїдальні періодичні сигнали', teacher: 'Андрущак Г.О.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Квантова механіка', teacher: 'Войцехівська О.М.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 207Б', type: 'exam' },
+          { subject: 'Фізичні основи мікроелектроніки', teacher: 'Мостовий А.І.', date: '15.06', time: '10:00', room: 'корпус 9, ауд. 217А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Електроенергетика, електротехніка та електромеханіка',
+        code: '233',
+        events: [
+          { subject: 'Електричні машини', teacher: 'Майструк Е.В.', date: '02.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Енергоефективність та надійність електротехнічних систем', teacher: 'Стребежев В.М.', date: '05.06', time: '09:00', room: 'корпус 9, ауд. 119Б', type: 'exam' },
+          { subject: 'Технічна механіка', teacher: 'Сльотов О.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 207А', type: 'exam' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'bachelor3',
+    label: '3 курс Бакалавр',
+    sublabel: '6 сем.',
+    groups: [
+      {
+        name: 'Метрологія та інформаційно-вимірювальна техніка',
+        code: '322',
+        events: [
+          { subject: 'Електроніка і схемотехніка', teacher: 'Галушко Ю.К.', date: '12.06', time: '09:00', room: 'корп.9, а.7', type: 'exam' },
+          { subject: 'Проектування та конструювання засобів вимірювальної техніки', teacher: 'Житарюк В.Г.', date: '08.06', time: '09:00', room: 'корп.9, а.406', type: 'exam' },
+          { subject: 'Біомедична оптика', teacher: 'Зенкова К.Ю.', date: '05.06', time: '09:00', room: 'корп.9, а.413', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Видавництво та поліграфія',
+        code: '326',
+        events: [
+          { subject: 'Видавничо-поліграфічні матеріали', teacher: 'Солтис І.В.', date: '04.06', time: '09:00', room: 'корп.9, а.408', type: 'exam' },
+          { subject: 'Обладнання видавничо- поліграфічних виробництв', teacher: 'Житарюк В.Г.', date: '12.06', time: '09:00', room: 'корп.9, а.406', type: 'exam' },
+          { subject: 'Технологія електронних видань', teacher: 'Горський М.П.', date: '09.06', time: '09:00', room: 'корп.9, а.408', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Видавництво та поліграфія',
+        code: '326ск',
+        events: [
+          { subject: 'Видавничо-поліграфічні матеріали', teacher: 'Солтис І.В.', date: '04.06', time: '09:00', room: 'корп.9, а.408', type: 'exam' },
+          { subject: 'Обладнання видавничо- поліграфічних виробництв', teacher: 'Житарюк В.Г.', date: '12.06', time: '09:00', room: 'корп.9, а.406', type: 'exam' },
+          { subject: 'Технологія електронних видань', teacher: 'Горський М.П.', date: '09.06', time: '09:00', room: 'корп.9, а.408', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Телекомунікації',
+        code: '324',
+        events: [
+          { subject: 'Системи комутації та розподілу інформації', teacher: 'Вікторовська Ю.Ю.', date: '12.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Напрямні системи електричного та оптичного зв\'язку', teacher: 'Мохунь І.І.', date: '08.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Захист інформації в телекомунікаційних системах та мережах', teacher: 'Чалий Ю.П.', date: '04.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+          { subject: 'Курсова робота з основ мікропроцесорної техніки', teacher: 'Стринадко М.Т.', date: '29.05', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Телекомунікації',
+        code: '324ск',
+        events: [
+          { subject: 'Системи комутації та розподілу інформації', teacher: 'Вікторовська Ю.Ю.', date: '12.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+          { subject: 'Напрямні системи електричного та оптичного зв\'язку', teacher: 'Мохунь І.І.', date: '08.06', time: '09:00', room: 'корп.9, а.312', type: 'exam' },
+          { subject: 'Захист інформації в телекомунікаційних системах та мережах', teacher: 'Чалий Ю.П.', date: '04.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+          { subject: 'Курсова робота з основ мікропроцесорної техніки', teacher: 'Стринадко М.Т.', date: '29.05', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Безпека інформаційних і комунікаційних систем та Інтернету речей',
+        code: '321',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '05.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Пристрої приймання і обробки сигналів', teacher: 'Браїловський В.В.', date: '09.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Цифрове оброблення сигналів', teacher: 'Гавриляк М.С.', date: '12.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Безпека інформаційних і комунікаційних систем та Інтернету речей',
+        code: '321ск',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '05.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+          { subject: 'Пристрої приймання і обробки сигналів', teacher: 'Браїловський В.В.', date: '09.06', time: '09:00', room: 'корп.9, а.2', type: 'exam' },
+          { subject: 'Цифрове оброблення сигналів', teacher: 'Гавриляк М.С.', date: '12.06', time: '09:00', room: 'корп.9, а.311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '325',
+        events: [
+          { subject: 'Безпека розробки і підтримки додатків', teacher: 'Круліковський О.В.', date: '12.06', time: '09:00', room: 'корп.9, а.А116', type: 'exam' },
+          { subject: 'Архітектура і моделі безпеки', teacher: 'Косован Г.В.', date: '09.06', time: '09:00', room: 'корп.9, а.В4', type: 'exam' },
+          { subject: 'Канали витоку інформації', teacher: 'Ластівка Г.І.', date: '04.06', time: '09:00', room: 'корп.9, а.А109', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '325ск',
+        events: [
+          { subject: 'Безпека розробки і підтримки додатків', teacher: 'Круліковський О.В.', date: '12.06', time: '09:00', room: 'корп.9, а.А116', type: 'exam' },
+          { subject: 'Архітектура і моделі безпеки', teacher: 'Косован Г.В.', date: '09.06', time: '09:00', room: 'корп.9, а.В4', type: 'exam' },
+          { subject: 'Канали витоку інформації', teacher: 'Ластівка Г.І.', date: '04.06', time: '09:00', room: 'корп.9, а.А109', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '341а',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '08.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '02.06', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '341б',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '08.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '02.06', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '341ск',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '01.06', time: '09:00', room: '9к 1ауд', type: 'exam' },
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '08.06', time: '09:00', room: '9к 3ауд', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '02.06', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Комп\'ютерна інженерія',
+        code: '342а',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '06.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Комп\'ютерна схемотехніка', teacher: 'Воробець Г.І.', date: '15.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: 'Олар О.Я.', date: '08.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Інженерія програмного забезпечення', teacher: 'Танасюк Ю.В.', date: '02.06', time: '09:00', room: '120', type: 'exam' },
+          { subject: 'Технології штучного інтелекту', teacher: 'Баловсяк С.В.', date: '11.06', time: '09:00', room: '326', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмування мобільних і вбудованих комп\'ютерних систем та засобів інтернету речей',
+        code: '342б',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '05.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: 'Олар О.Я.', date: '09.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Інженерія програмного забезпечення', teacher: 'Танасюк Ю.В.', date: '03.06', time: '09:00', room: '120', type: 'exam' },
+          { subject: 'Технології штучного інтелекту', teacher: 'Баловсяк С.В.', date: '12.06', time: '09:00', room: '326', type: 'exam' },
+          { subject: 'Схемотехніка мобільних і вбудованих комп\'ютерних систем', teacher: 'Воробець Г.І.', date: '16.06', time: '09:00', room: '221', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмування мобільних і вбудованих комп\'ютерних систем та засобів інтернету речей',
+        code: '342ск',
+        events: [
+          { subject: 'Філософія', teacher: 'Мартиненко О.П. Руснак І.Г.', date: '05.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Комп\'ютерні мережі', teacher: 'Олар О.Я.', date: '09.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Інженерія програмного забезпечення', teacher: 'Танасюк Ю.В.', date: '03.06', time: '09:00', room: '120', type: 'exam' },
+          { subject: 'Технології штучного інтелекту', teacher: 'Баловсяк С.В.', date: '12.06', time: '09:00', room: '326', type: 'exam' },
+          { subject: 'Схемотехніка мобільних і вбудованих комп\'ютерних систем', teacher: 'Воробець Г.І.', date: '16.06', time: '09:00', room: '221', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '344а',
+        events: [
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '04.06', time: '09:00', room: '224', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '10.06', time: '09:00', room: '115', type: 'exam' },
+          { subject: 'Технологія створення програмних продуктів', teacher: 'Томка Ю.Я.', date: '11.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Інтелектуальний аналіз даних засобами Python//R', teacher: 'Талах М.В.', date: '01.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Яцько О.М.', date: '08.06', time: '09:00', room: '111', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '344б',
+        events: [
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '05.06', time: '09:00', room: '224', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '10.06', time: '09:00', room: '115', type: 'exam' },
+          { subject: 'Технологія створення програмних продуктів', teacher: 'Томка Ю.Я.', date: '12.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Інтелектуальний аналіз даних засобами Python//R', teacher: 'Талах М.В.', date: '02.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Яцько О.М.', date: '09.06', time: '09:00', room: '111', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '344ск',
+        events: [
+          { subject: 'Технології захисту інформації', teacher: 'Остапов С.Е.', date: '05.06', time: '09:00', room: '224', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Тимофієва Є.М. Яцько О.М.', date: '10.06', time: '09:00', room: '115', type: 'exam' },
+          { subject: 'Технологія створення програмних продуктів', teacher: 'Томка Ю.Я.', date: '13.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Інтелектуальний аналіз даних засобами Python//R', teacher: 'Талах М.В.', date: '03.06', time: '09:00', room: '114', type: 'exam' },
+          { subject: 'Моделювання систем', teacher: 'Яцько О.М.', date: '10.06', time: '09:00', room: '111', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '343а',
+        events: [
+          { subject: 'Безпека програм та даних', teacher: 'Остапов С.Е.', date: '09.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Технології розробки мобільних додатків', teacher: 'Когут О.В.', date: '01.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Управління ІТ- проєктами', teacher: 'Комісарчук В.В.', date: '04.06', time: '09:00', room: '221', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '343б',
+        events: [
+          { subject: 'Безпека програм та даних', teacher: 'Остапов С.Е.', date: '10.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Технології розробки мобільних додатків', teacher: 'Когут О.В.', date: '02.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Управління ІТ- проєктами', teacher: 'Комісарчук В.В.', date: '04.06', time: '09:00', room: '221', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмна інженерія',
+        code: '343с',
+        events: [
+          { subject: 'Безпека програм та даних', teacher: 'Остапов С.Е.', date: '10.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Технології розробки мобільних додатків', teacher: 'Когут О.В.', date: '02.06', time: '09:00', room: '221', type: 'exam' },
+          { subject: 'Управління ІТ- проєктами', teacher: 'Комісарчук В.В.', date: '04.06', time: '09:00', room: '221', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '313',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '01.06', time: '09:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Фізика ядра й елементарних частинок', teacher: 'Юрійчук І.М.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Електродинаміка', teacher: 'Гуцул В.І. Головацький В.А.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 413А', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Борча М.Д. Войцехівська О.М. Гуцул В.І. Гуцуляк І.І. Кузьмін А.Р. Солодкий М.С. Струк Я.М. Ткач О.О. Гудима Ю.В. Томаш В.В. Ярема С.В. Константинович І.А. Маханець О.М.', date: '29.05', time: '14:00', room: 'корпус 9, ауд. 413А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Фізика та астрономія',
+        code: '311',
+        events: [
+          { subject: 'Фізика ядра й елементарних частинок', teacher: 'Юрійчук І.М.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 118Б', type: 'exam' },
+          { subject: 'Електродинаміка', teacher: 'Гуцул В.І. Головацький В.А.', date: '01.06', time: '11:00', room: 'корпус 9, ауд. 204Б', type: 'exam' },
+          { subject: 'Курсова робота', teacher: 'Борча М.Д. Войцехівська О.М. Гуцул В.І. Гуцуляк І.І. Кузьмін А.Р. Солодкий М.С. Струк Я.М. Ткач О.О. Гудима Ю.В. Томаш В.В. Ярема С.В. Константинович І.А. Маханець О.М.', date: '27.05', time: '14:30', room: 'корпус 9, ауд. 204Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Трудове навчання та технології',
+        code: '315',
+        events: [
+          { subject: 'Методика викладання предмету ""Трудове навчання""', teacher: 'Томаш В.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 403А', type: 'exam' },
+          { subject: 'Робочі машини', teacher: 'Ярема С.В.', date: '05.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Деталі машин', teacher: 'Ярема С.В.', date: '09.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Технології та інформатика',
+        code: '315 ск',
+        events: [
+          { subject: 'Методика викладання предмету ""Трудове навчання""', teacher: 'Томаш В.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 403А', type: 'exam' },
+          { subject: 'Робочі машини', teacher: 'Ярема С.В.', date: '05.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Деталі машин', teacher: 'Ярема С.В.', date: '09.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Машинобудування',
+        code: '316',
+        events: [
+          { subject: 'Робочі машини', teacher: 'Ярема С.В.', date: '05.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Деталі машин', teacher: 'Ярема С.В.', date: '09.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Технологія машинобудування ч.. 1', teacher: 'Деревянчук О.В.', date: '01.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Машинобудування',
+        code: '316 ск',
+        events: [
+          { subject: 'Курсова робота', teacher: 'Борча М.Д. Войцехівська О.М. Гуцул В.І. Гуцуляк І.І. Кузьмін А.Р. Солодкий М.С. Струк Я.М. Ткач О.О. Гудима Ю.В. Томаш В.В. Ярема С.В. Константинович І.А. Маханець О.М.', date: '27.05', time: '14:30', room: '', type: 'exam' },
+          { subject: 'Робочі машини', teacher: 'Ярема С.В.', date: '05.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Деталі машин', teacher: 'Ярема С.В.', date: '09.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+          { subject: 'Технологія машинобудування ч.. 1', teacher: 'Деревянчук О.В.', date: '01.06', time: '10:00', room: 'корпус 2, ауд. 206', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Автоматизація та комп\'ютерно-інтегровані технології',
+        code: '331ск',
+        events: [
+          { subject: 'Теорія автоматичного керування', teacher: 'Шепетюк Б.Д.', date: '05.06', time: '09:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Програмування інтегрованих комп\'ютерних систем', teacher: 'Чупира С.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+          { subject: 'Аналогова схемотехніка', teacher: 'Нічий С.В.', date: '01.06', time: '09:00', room: 'корпус 9, ауд. 121Б', type: 'exam' },
+          { subject: 'Елементи та об\'єкти автоматизації', teacher: 'Мостовий А.І.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 217А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Автоматизація та комп\'ютерно-інтегровані технології',
+        code: '331',
+        events: [
+          { subject: 'Прилади твердотільної електроніки', teacher: 'Козярський І.П.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Програмування інтегрованих комп\'ютерних систем', teacher: 'Чупира С.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 216А', type: 'exam' },
+          { subject: 'Аналогова схемотехніка', teacher: 'Нічий С.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 121Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Мікро-та наносистемна техніка',
+        code: '332',
+        events: [
+          { subject: 'Прилади твердотільної електроніки', teacher: 'Козярський І.П.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Аналогова схемотехніка', teacher: 'Нічий С.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 121Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Електроенергетика, електротехніка та електромеханіка',
+        code: '333',
+        events: [
+          { subject: 'Українська мова (за професійним спрямуванням)', teacher: 'Гажук-Котик Л.Г.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 1', type: 'exam' },
+          { subject: 'Відновлювані джерела енергії', teacher: 'Грушка О.Г.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Електричні системи та мережі', teacher: 'Козярський Д.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 400А', type: 'exam' },
+          { subject: 'Електрична частина станцій та підстанцій', teacher: 'Сльотов О.М.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Електроенергетика, електротехніка та електромеханіка',
+        code: '333ск',
+        events: [
+          { subject: 'Відновлювані джерела енергії', teacher: 'Грушка О.Г.', date: '12.06', time: '10:00', room: 'корпус 9, ауд. 110Б', type: 'exam' },
+          { subject: 'Електричні системи та мережі', teacher: 'Козярський Д.П.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 400А', type: 'exam' },
+          { subject: 'Електрична частина станцій та підстанцій', teacher: 'Сльотов О.М.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 205А', type: 'exam' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'master1',
+    label: '1 курс Магістр',
+    sublabel: '2 сем.',
+    groups: [
+      {
+        name: 'Фотоніка: комп\'ютерні оптичні системи',
+        code: '122м',
+        events: [
+          { subject: 'Сучасні інформаційно-вимірювальні комплекси', teacher: 'Єрмоленко С.Б.', date: '05.06', time: '09:00', room: 'корп.9, а.313', type: 'exam' },
+          { subject: 'Віртуальні вимірювальні прилади', teacher: 'Гавриляк М.С.', date: '08.06', time: '09:00', room: 'корп.9, а.313', type: 'exam' },
+          { subject: 'Тенденції розвитку оптичної метрології', teacher: 'Ангельський О.В.', date: '12.06', time: '09:00', room: 'корп.9, а.313', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інформаційні мережі зв’’язку',
+        code: '124м',
+        events: [
+          { subject: 'Оптичні технології в системах та мережах зв\'язку', teacher: 'Мохунь І.І.', date: '04.06', time: '09:00', room: 'корп.9, а.313', type: 'exam' },
+          { subject: 'Управління та якість послуг інформаційних мереж зв\'язку', teacher: 'Галушко Ю.К.', date: '09.06', time: '09:00', room: 'корп.9, а.313', type: 'exam' },
+          { subject: 'Курсова робота з НДРС', teacher: 'Бурковець Д.М. Вікторовська Ю.Ю.', date: '30.05', time: '09:00', room: '', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Радіотехніка',
+        code: '121м',
+        events: [
+          { subject: 'Мікропроцесори в радіосистемах і пристроях', teacher: 'Верига А.Д.', date: '04.06', time: '09:00', room: 'корп.9, а.А108', type: 'exam' },
+          { subject: 'Пристрої і системи телебачення', teacher: 'Русин В.Б.', date: '12.06', time: '09:00', room: 'корп.9, а.7', type: 'exam' },
+          { subject: 'Засоби радіопротидії в інформаційно-телекомунікаційних системах', teacher: 'Браїловський В.В.', date: '08.06', time: '09:00', room: 'корп.9, а.9', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Кібербезпека',
+        code: '125м',
+        events: [
+          { subject: 'Ліцензування, атестація та сертифікація у сфері безпеки об\'єктів інформаційної діяльності', teacher: 'Горбулик В.І.', date: '12.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+          { subject: 'Безпека інфокомунікацій та безперервність бізнес-процесів', teacher: 'Косован Г.В.', date: '04.06', time: '09:00', room: 'корп.9, а.В4', type: 'exam' },
+          { subject: 'Ризик-орієнтований аналіз у кібербезпеці', teacher: 'Рождественська М.Г.', date: '09.06', time: '09:00', room: 'корп.9, а.А107', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Технологія електронних мультимедійних видань',
+        code: '126м',
+        events: [
+          { subject: 'Управління проєктами', teacher: 'Курек Є.І.', date: '05.06', time: '09:00', room: 'корп.9, а.8', type: 'exam' },
+          { subject: 'Методи наукових досліджень', teacher: 'Ушенко О.Г.', date: '10.06', time: '09:00', room: 'корп.9, а.402', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Комп’’ютерна інженерія технологій інтернету речей та кіберфізичних систем',
+        code: '142а м',
+        events: [
+          { subject: 'Інтелектуальна власність та патентознавство в ІТ галузі', teacher: 'Ілащук М.М.', date: '03.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'ІоТ технології для кіберфізичних систем', teacher: 'Воробець Г.І.', date: '12.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Технології хмарних (cloud) обчислень', teacher: 'Баловсяк С.В.', date: '09.06', time: '09:00', room: '311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Комп’’ютерна інженерія',
+        code: '142б м',
+        events: [
+          { subject: 'Інтелектуальна власність та патентознавство в ІТ галузі', teacher: 'Ілащук М.М.', date: '03.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'ІоТ технології для кіберфізичних систем', teacher: 'Воробець Г.І.', date: '12.06', time: '09:00', room: '315', type: 'exam' },
+          { subject: 'Технології хмарних (cloud) обчислень', teacher: 'Баловсяк С.В.', date: '09.06', time: '09:00', room: '311', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Алгоритмічне та програмне забезпечення комп’’ютерних систем',
+        code: '141м',
+        events: [
+          { subject: 'Методи обробки та аналізу BigData', teacher: 'Кириченко О.О.', date: '04.06', time: '09:00', room: '216', type: 'exam' },
+          { subject: 'Програмування комп\'ютерних мереж', teacher: 'Лазорик В.В.', date: '01.06', time: '09:00', room: '213', type: 'exam' },
+          { subject: 'Інжиніринг даних', teacher: 'Ватаманіца Е.В.', date: '09.06', time: '09:00', room: '216', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Інтелектуальний аналіз даних в комп’’ютерних інформаційних системах',
+        code: '144м',
+        events: [
+          { subject: 'Інжиніринг даних', teacher: 'Ватаманіца Е.В.', date: '08.06', time: '09:00', room: '112', type: 'exam' },
+          { subject: 'Комп\'ютерний зір, розпізнавання та класифікація в системах штучного інтелекту', teacher: 'Дворжак В.В.', date: '03.06', time: '09:00', room: '101', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Програмне забезпечення систем',
+        code: '143м',
+        events: [
+          { subject: 'Інженерія надійності програмного забезпечення', teacher: 'Добровольський Ю.Г.', date: '05.06', time: '09:00', room: '209', type: 'exam' },
+          { subject: 'Формальні методи інженерії програмного забезпечення', teacher: 'Шумиляк Л.М.', date: '02.06', time: '09:00', room: '211', type: 'exam' },
+          { subject: 'Розробка Open Source проєктів', teacher: 'Прохоров Г.В.', date: '10.06', time: '09:00', room: '209', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Комп’’ютерна фізика',
+        code: '114м',
+        events: [
+          { subject: 'Основи штучного інтелекту та його застосування у фізичних дослідженнях', teacher: 'Баловсяк С.В.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 215Б', type: 'exam' },
+          { subject: 'Спеціалізовані програми і програмні середовища для вирішення фізичних задач та моделювання', teacher: 'Борча М.Д.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 212Б', type: 'exam' },
+          { subject: 'Спеціальний науковий семінар з комп\'ютерної фізики', teacher: 'Борча М.Д.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 215Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '113м',
+        events: [
+          { subject: 'Фізичні методи заощадження та акумулювання енергії', teacher: 'Константинович І.А.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 400А', type: 'exam' },
+          { subject: 'Методи вимірювання параметрів функціональних матеріалів', teacher: 'Лисько В.В.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 103Б', type: 'exam' },
+          { subject: 'Науково-дослідна робота за темою кваліфікаційної роботи', teacher: 'Маханець О.М.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 103Б', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Середня освіта (Технології та інформатика)',
+        code: '115м',
+        events: [
+          { subject: 'Методика навчання інформатики', teacher: 'Лучко В.С.', date: '02.06', time: '10:00', room: 'корпус 8, ауд. 102Ц', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Професійна освіта (Машинобудування)',
+        code: '116м',
+        events: [
+          { subject: 'Інтернет-технології в освіті', teacher: 'Гудима Ю.В.', date: '03.06', time: '10:00', room: 'корпус 8, ауд. 101Ц', type: 'exam' },
+        ]
+      },
+      {
+        name: 'Відновлювані джерела енергії та гідроенергетика',
+        code: '134м',
+        events: [
+          { subject: 'Оптика, метрологія та технологія виробництва сонячних елементів', teacher: 'Орлецький І.Г.', date: '09.06', time: '10:00', room: 'корпус 9, ауд. 207А', type: 'exam' },
+          { subject: 'Основи наукових досліджень, організація науки та академічна доброчесність', teacher: 'Козярський І.П.', date: '01.06', time: '10:00', room: 'корпус 9, ауд. 207А', type: 'exam' },
+          { subject: 'Проектування електричних станцій на основі відновлюваних джерел енергії', teacher: 'Сльотов О.М.', date: '05.06', time: '10:00', room: 'корпус 9, ауд. 207А', type: 'exam' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'master2',
+    label: '2 курс Магістр',
+    sublabel: '4 сем.',
+    groups: [
+      {
+        name: 'Комп’’ютерна інженерія технологій інтернету речей та кіберфізичних систем',
+        code: '242а м',
+        events: [
+          { subject: 'Випускна кваліфікаційна робота', teacher: 'Воробець Г.І.', date: '27.05', time: '08:00', room: '326', type: 'vkr' },
+        ]
+      },
+      {
+        name: 'Фотоніка: комп\'ютерні оптичні системи',
+        code: '222м',
+        events: [
+          { subject: 'Випускна кваліфікаційна робота магістра', teacher: 'Ангельський О.В. Єрмоленко С.Б. Солтис І.В.', date: '25.05', time: '09:00', room: '', type: 'vkr' },
+          { subject: 'Асистентська практика', teacher: 'Ангельський О.В. Городинська Н.В. Єрмоленко С.Б.', date: '02.04', time: '09:00', room: '', type: 'practice' },
+        ]
+      },
+      {
+        name: 'Прикладна фізика та наноматеріали',
+        code: '213м',
+        events: [
+          { subject: 'Переддипломна практика', teacher: 'Константинович І.А. Маханець О.М. Борча М.Д.', date: '22.04', time: '09:00', room: '', type: 'practice' },
+          { subject: 'Випускна кваліфікаційна робота', teacher: 'Кобилянський Р.Р. Маханець О.М. Борча М.Д. Фодчук І.М.', date: '28.05', time: '09:00', room: '', type: 'vkr' },
+        ]
+      },
+      {
+        name: 'Комп\'ютерна фізика',
+        code: '214м',
+        events: [
+          { subject: 'Переддипломна практика', teacher: 'Константинович І.А. Маханець О.М. Борча М.Д.', date: '24.04', time: '09:00', room: '', type: 'practice' },
+          { subject: 'Випускна кваліфікаційна робота', teacher: 'Кобилянський Р.Р. Маханець О.М. Борча М.Д. Фодчук І.М.', date: '29.05', time: '09:00', room: '', type: 'vkr' },
+        ]
+      },
+    ]
+  },
+];
+
+// ====== HELPERS ======
+const TODAY = new Date();
+
+function parseDate(str) {
+  const [d, m] = str.split('.').map(Number);
+  return new Date(2026, m - 1, d);
+}
+
+function isToday(str) {
+  const d = parseDate(str);
+  return d.getDate() === TODAY.getDate() && d.getMonth() === TODAY.getMonth();
+}
+
+function isSoon(str) {
+  const d = parseDate(str);
+  const diff = (d - TODAY) / 86400000;
+  return diff > 0 && diff <= 3;
+}
+
+function isPast(str) {
+  return parseDate(str) < TODAY && !isToday(str);
+}
+
+function monthOf(str) {
+  return parseInt(str.split('.')[1]);
+}
+
+// ====== RENDER ======
+function buildTabs() {
+  const tabs = document.getElementById('tabs');
+  const panels = document.getElementById('panels');
+
+  SECTIONS.forEach((sec, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'tab' + (i === 0 ? ' active' : '');
+    tab.dataset.id = sec.id;
+    tab.textContent = sec.label + ' · ' + sec.sublabel;
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + sec.id).classList.add('active');
+      filterCards();
+    });
+    tabs.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'section-panel' + (i === 0 ? ' active' : '');
+    panel.id = 'panel-' + sec.id;
+
+    sec.groups.forEach(grp => {
+      const block = document.createElement('div');
+      block.className = 'group-block';
+      const gridId = 'grid-' + sec.id + '-' + grp.code.replace(/[^a-z0-9]/gi, '_');
+
+      block.innerHTML = `
+        <div class="group-header">
+          <span class="group-title">${grp.name}</span>
+          <span class="group-code">${grp.code}</span>
+          <span class="group-line"></span>
+        </div>
+        <div class="schedule-grid" id="${gridId}"></div>
+      `;
+
+      const grid = block.querySelector('.schedule-grid');
+      const months = ['', 'січ', 'лют', 'бер', 'квіт', 'трав', 'черв', 'лип', 'серп', 'вер', 'жовт', 'лист', 'груд'];
+
+      grp.events.forEach(ev => {
+        const [dd, mm] = ev.date.split('.');
+        const card = document.createElement('div');
+        const typeClass = ev.type === 'vkr' ? 'type-vkr' : ev.type === 'practice' ? 'type-practice' : 'type-exam';
+        card.className = `event-card ${typeClass}${isPast(ev.date) ? ' past-card' : ''}`;
+        card.dataset.subject = ev.subject.toLowerCase();
+        card.dataset.teacher = (ev.teacher || '').toLowerCase();
+        card.dataset.group = (grp.name + ' ' + grp.code).toLowerCase();
+        card.dataset.room = (ev.room || '').toLowerCase();
+        card.dataset.month = monthOf(ev.date);
+
+        const todayBadge = isToday(ev.date) ? '<span class="today-badge">Сьогодні</span>' : '';
+        const soonBadge = isSoon(ev.date) ? '<span class="soon-badge">Скоро</span>' : '';
+
+        let typeBadge = '';
+        if (ev.type === 'vkr') typeBadge = '<span class="exam-type-badge vkr">ВКР</span>';
+        else if (ev.type === 'practice') typeBadge = '<span class="exam-type-badge">Практика</span>';
+
+        card.innerHTML = `
+          <div class="event-date">
+            <div class="day">${dd}</div>
+            <div class="month">${months[parseInt(mm)]}</div>
+            <div class="time">${ev.time}</div>
+          </div>
+          <div class="event-info">
+            <div class="event-name">${ev.subject}${typeBadge}${todayBadge}${soonBadge}</div>
+            ${ev.teacher ? `<div class="event-teacher">${ev.teacher}</div>` : ''}
+            ${ev.room ? `<div class="event-room">${ev.room}</div>` : ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      panel.appendChild(block);
+    });
+
+    panels.appendChild(panel);
+  });
+}
+
+function updateStats() {
+  let total = 0, groups = 0, today = 0, soon = 0;
+  SECTIONS.forEach(sec => {
+    sec.groups.forEach(grp => {
+      groups++;
+      grp.events.forEach(ev => {
+        total++;
+        if (isToday(ev.date)) today++;
+        if (isSoon(ev.date)) soon++;
+      });
+    });
+  });
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statGroups').textContent = groups;
+  document.getElementById('statToday').textContent = today;
+  document.getElementById('statSoon').textContent = soon;
+}
+
+function filterCards() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const month = document.querySelector('.chip.active[data-month]')?.dataset.month || 'all';
+  const activePanel = document.querySelector('.section-panel.active');
+  if (!activePanel) return;
+
+  const cards = activePanel.querySelectorAll('.event-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const matchQ = !q ||
+      card.dataset.subject.includes(q) ||
+      card.dataset.teacher.includes(q) ||
+      card.dataset.group.includes(q) ||
+      card.dataset.room.includes(q);
+    const matchM = month === 'all' || card.dataset.month === month;
+    if (matchQ && matchM) { card.classList.remove('hidden'); visible++; }
+    else card.classList.add('hidden');
+  });
+
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+buildTabs();
+updateStats();
+document.getElementById('search').addEventListener('input', filterCards);
+document.querySelectorAll('.chip[data-month]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-month]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    filterCards();
+  });
+});
+</script>
+</body>
+</html>
